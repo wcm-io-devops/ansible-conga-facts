@@ -92,8 +92,6 @@ class ActionModule(ActionBase):
 
         result["ansible_facts"] = {
             "conga_basedir": conga_basedir,
-            "conga_environment": conga_environment,
-            "conga_node": conga_node,
             "conga_role": conga_role,
             "conga_variant": conga_variant,
             "conga_config_path": conga_config_path,
