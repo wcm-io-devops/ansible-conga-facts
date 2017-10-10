@@ -39,6 +39,9 @@ class ActionModule(ActionBase):
             conga_target_path = self._get_arg_or_var('conga_target_path', 'target/configuration')
             conga_config_path = os.path.join(conga_basedir, conga_target_path, conga_environment, conga_node)
 
+            # Get explicit role mapping
+            conga_role_mapping = self._get_arg_or_var('conga_role_mapping', None, False)
+
             # Get name of model file, use model.yaml by default
             conga_model_file = self._get_arg_or_var('conga_model_file', 'model.yaml')
         except AnsibleOptionsError as err:
@@ -55,20 +58,29 @@ class ActionModule(ActionBase):
         roles = model.get("roles", [])
 
         # Allow overriding the CONGA role with the conga_role_mapping variable or argument
-        conga_role = self._get_arg_or_var('conga_role_mapping', None, False)
+        conga_role = self._match_conga_role(roles, conga_role_mapping)
         role_source = 'mapping'
         if not conga_role:
-            conga_role = self._resolve_current_role(roles)
+            # Resolve the CONGA role via the name of the current Ansible role
+            conga_role = self._match_conga_role(roles, self.current_role)
             role_source = 'current'
         if not conga_role:
-            conga_role = self._resolve_depending_role(roles)
+            # Resolve the CONGA role via the name of the first Ansible role in the dependency chain
+            conga_role = self._match_conga_role(roles, self.depending_role)
             role_source = 'dependency'
         if not conga_role:
-            conga_role = self._resolve_parent_role(roles)
+            # Resolve the CONGA role via the top-level parent role of the task
+            # This is necessary if a role is not executed as a dependency but via include_role
+            conga_role = self._match_conga_role(roles, self.parent_role)
             role_source = 'parent'
         if not conga_role:
             # Fail the task if no CONGA role could be resolved
-            return self._fail_result(result, "unable to find a matching CONGA role")
+            return self._fail_result(result, "unable to match CONGA role for node '%s' [mapping: '%s', current: '%s', dependency: '%s', parent: '%s']" % (
+                                     conga_node,
+                                     conga_role_mapping,
+                                     self.current_role,
+                                     self.depending_role,
+                                     self.parent_role))
 
         # Get role from model
         model_role = next((role for role in roles if role["role"] == conga_role), {})
@@ -81,8 +93,8 @@ class ActionModule(ActionBase):
 
         # Always display resolved role and mapping
         self._display.display(
-            "[%s] (%s) => role: %s, variant: %s" %
-            (task_vars['inventory_hostname'], role_source, conga_role, conga_variant))
+            "[%s (%s)] (%s) => role: %s, variant: %s" %
+            (task_vars['inventory_hostname'], conga_node, role_source, conga_role, conga_variant))
 
         # Build lists of CONGA files and packages
         conga_files_paths, conga_files, conga_packages = self._get_files_and_packages(model_role)
@@ -111,30 +123,29 @@ class ActionModule(ActionBase):
         result['msg'] = message
         return result
 
-    def _resolve_depending_role(self, roles):
-        # Resolve the CONGA role via the name of the first Ansible role in the dependency chain
+    @property
+    def depending_role(self):
         dep_chain = self._task.get_dep_chain()
         if dep_chain:
-            depending_role = str(next(iter(dep_chain), None))
-            return self._match_conga_role(roles, depending_role)
+            return str(next(iter(dep_chain), None))
 
-    def _resolve_parent_role(self, roles):
-        # Resolve the CONGA role via the top-level parent role of the task
-        # This is necessary if a role is not executed as a dependency but via include_role
+    @property
+    def parent_role(self):
         parent = self._task._parent
         while parent:
             if hasattr(parent, '_role'):
                 parent_role = parent._role._role_name
             parent = parent._parent
-        if parent_role:
-            return self._match_conga_role(roles, parent_role)
+        return parent_role
 
-    def _resolve_current_role(self, roles):
-        # Resolve the CONGA role via the name of the current Ansible role
+    @property
+    def current_role(self):
         if self._task._role:
-            return self._match_conga_role(roles, self._task._role._role_name)
+            return self._task._role._role_name
 
     def _match_conga_role(self, roles, ansible_role):
+        if not ansible_role:
+            return None
         # Strip "conga-" prefix from Ansible role name
         ansible_role = re.sub("^conga-", "", ansible_role)
         # Iterate over CONGA roles and return the first match
