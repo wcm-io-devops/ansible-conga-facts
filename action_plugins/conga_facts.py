@@ -100,6 +100,7 @@ class ActionModule(ActionBase):
         # Build result variables
         conga_role = model_role.get("role", None)
         conga_variant = model_role.get("variant", None)
+        conga_variants = model_role.get("variants", [])
         conga_config = model_role.get("config", {})
         conga_tenants = model_role.get("tenants", {})
 
@@ -118,6 +119,7 @@ class ActionModule(ActionBase):
             "conga_basedir": conga_basedir,
             "conga_role": conga_role,
             "conga_variant": conga_variant,
+            "conga_variants": conga_variants,
             "conga_config_path": conga_config_path,
             "conga_config": conga_config,
             "conga_tenants": conga_tenants,
