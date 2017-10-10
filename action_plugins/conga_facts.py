@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import (absolute_import, division, print_function)
+
 __metaclass__ = type
 
 import yaml
@@ -10,17 +11,28 @@ import re
 
 from ansible.module_utils._text import to_native
 from ansible.plugins.action import ActionBase
-from ansible.errors import AnsibleError, AnsibleOptionsError
+from ansible.errors import AnsibleOptionsError
+
+try:
+    from __main__ import display
+except ImportError:
+    from ansible.utils.display import Display
+    display = Display()
+
 
 class ActionModule(ActionBase):
-
     TRANSFERS_FILES = False
+
+    def __init__(self, task, connection, play_context, loader, templar, shared_loader_obj):
+        super(ActionModule, self).__init__(task, connection, play_context, loader, templar, shared_loader_obj)
+        self._task_vars = None
 
     def run(self, tmp=None, task_vars=None):
         if task_vars is None:
             task_vars = dict()
 
         result = super(ActionModule, self).run(tmp, task_vars)
+
         self._task_vars = task_vars
 
         try:
@@ -47,9 +59,9 @@ class ActionModule(ActionBase):
         except AnsibleOptionsError as err:
             return self._fail_result(result, err.message)
 
+        # Parse CONGA model YAML
+        model_file = os.path.join(conga_config_path, conga_model_file)
         try:
-            # Parse CONGA model YAML
-            model_file = os.path.join(conga_config_path, conga_model_file)
             with open(model_file) as f:
                 model = yaml.safe_load(f.read())
         except Exception as err:
@@ -76,11 +88,11 @@ class ActionModule(ActionBase):
         if not conga_role:
             # Fail the task if no CONGA role could be resolved
             return self._fail_result(result, "unable to match CONGA role for node '%s' [mapping: '%s', current: '%s', dependency: '%s', parent: '%s']" % (
-                                     conga_node,
-                                     conga_role_mapping,
-                                     self.current_role,
-                                     self.depending_role,
-                                     self.parent_role))
+                conga_node,
+                conga_role_mapping,
+                self.current_role,
+                self.depending_role,
+                self.parent_role))
 
         # Get role from model
         model_role = next((role for role in roles if role["role"] == conga_role), {})
@@ -92,7 +104,7 @@ class ActionModule(ActionBase):
         conga_tenants = model_role.get("tenants", {})
 
         # Always display resolved role and mapping
-        self._display.display(
+        display.display(
             "[%s (%s)] (%s) => role: %s, variant: %s" %
             (task_vars['inventory_hostname'], conga_node, role_source, conga_role, conga_variant))
 
@@ -131,6 +143,7 @@ class ActionModule(ActionBase):
 
     @property
     def parent_role(self):
+        parent_role = None
         parent = self._task._parent
         while parent:
             if hasattr(parent, '_role'):
@@ -159,15 +172,15 @@ class ActionModule(ActionBase):
         conga_files = []
         conga_packages = []
 
-        for file in role.get("files", []):
-            path = file.get("path", None)
-            if "aemContentPackageProperties" in file:
+        for role_file in role.get("files", []):
+            path = role_file.get("path", None)
+            if "aemContentPackageProperties" in role_file:
                 # If the file has package properties we know it's an AEM package
-                conga_packages.append(file)
+                conga_packages.append(role_file)
             else:
                 # It's a regular file otherwise
                 conga_files_paths.append(path)
-                conga_files.append(file)
+                conga_files.append(role_file)
 
         return conga_files_paths, conga_files, conga_packages
 
@@ -177,4 +190,3 @@ class ActionModule(ActionBase):
             raise AnsibleOptionsError("parameter %s is required" % name)
         else:
             return ret
-
