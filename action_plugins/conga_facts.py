@@ -73,22 +73,22 @@ class ActionModule(ActionBase):
         roles = model.get("roles", [])
 
         # Allow overriding the CONGA role with the conga_role_mapping variable or argument
-        conga_role = self._match_conga_role(roles, conga_role_mapping, conga_variant_mapping)
+        model_role = self._match_conga_role(roles, conga_role_mapping, conga_variant_mapping)
         role_source = 'mapping'
-        if not conga_role:
+        if not model_role:
             # Resolve the CONGA role via the name of the current Ansible role
-            conga_role = self._match_conga_role(roles, self.current_role, conga_variant_mapping)
+            model_role = self._match_conga_role(roles, self.current_role, conga_variant_mapping)
             role_source = 'current'
-        if not conga_role:
+        if not model_role:
             # Resolve the CONGA role via the name of the first Ansible role in the dependency chain
-            conga_role = self._match_conga_role(roles, self.depending_role, conga_variant_mapping)
+            model_role = self._match_conga_role(roles, self.depending_role, conga_variant_mapping)
             role_source = 'dependency'
-        if not conga_role:
+        if not model_role:
             # Resolve the CONGA role via the top-level parent role of the task
             # This is necessary if a role is not executed as a dependency but via include_role
-            conga_role = self._match_conga_role(roles, self.parent_role, conga_variant_mapping)
+            model_role = self._match_conga_role(roles, self.parent_role, conga_variant_mapping)
             role_source = 'parent'
-        if not conga_role:
+        if not model_role:
             # Fail the task if no CONGA role could be resolved
             return self._fail_result(result, ("unable to match CONGA role for node '%s' "
                                               "[role_mapping: '%s', variant_mapping: '%s', current: '%s', dependency: '%s', parent: '%s']") % (
@@ -98,9 +98,6 @@ class ActionModule(ActionBase):
                 self.current_role,
                 self.depending_role,
                 self.parent_role))
-
-        # Get role from model
-        model_role = next((role for role in roles if role["role"] == conga_role), {})
 
         # Build result variables
         conga_role = model_role.get("role", None)
@@ -175,9 +172,9 @@ class ActionModule(ActionBase):
             if conga_role == ansible_role:
                 if ansible_variant:
                     if ansible_variant in role.get("variants", []):
-                        return conga_role
+                        return role
                 else:
-                    return conga_role
+                    return role
 
     def _get_files_and_packages(self, role):
         conga_files_paths = []
