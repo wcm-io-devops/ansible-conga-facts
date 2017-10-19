@@ -54,6 +54,9 @@ class ActionModule(ActionBase):
             # Get explicit role mapping
             conga_role_mapping = self._get_arg_or_var('conga_role_mapping', None, False)
 
+            # Get explicit variant mapping
+            conga_variant_mapping = self._get_arg_or_var('conga_variant_mapping', None, False)
+
             # Get name of model file, use model.yaml by default
             conga_model_file = self._get_arg_or_var('conga_model_file', 'model.yaml')
         except AnsibleOptionsError as err:
@@ -70,26 +73,28 @@ class ActionModule(ActionBase):
         roles = model.get("roles", [])
 
         # Allow overriding the CONGA role with the conga_role_mapping variable or argument
-        conga_role = self._match_conga_role(roles, conga_role_mapping)
+        conga_role = self._match_conga_role(roles, conga_role_mapping, conga_variant_mapping)
         role_source = 'mapping'
         if not conga_role:
             # Resolve the CONGA role via the name of the current Ansible role
-            conga_role = self._match_conga_role(roles, self.current_role)
+            conga_role = self._match_conga_role(roles, self.current_role, conga_variant_mapping)
             role_source = 'current'
         if not conga_role:
             # Resolve the CONGA role via the name of the first Ansible role in the dependency chain
-            conga_role = self._match_conga_role(roles, self.depending_role)
+            conga_role = self._match_conga_role(roles, self.depending_role, conga_variant_mapping)
             role_source = 'dependency'
         if not conga_role:
             # Resolve the CONGA role via the top-level parent role of the task
             # This is necessary if a role is not executed as a dependency but via include_role
-            conga_role = self._match_conga_role(roles, self.parent_role)
+            conga_role = self._match_conga_role(roles, self.parent_role, conga_variant_mapping)
             role_source = 'parent'
         if not conga_role:
             # Fail the task if no CONGA role could be resolved
-            return self._fail_result(result, "unable to match CONGA role for node '%s' [mapping: '%s', current: '%s', dependency: '%s', parent: '%s']" % (
+            return self._fail_result(result, ("unable to match CONGA role for node '%s' "
+                                              "[role_mapping: '%s', variant_mapping: '%s', current: '%s', dependency: '%s', parent: '%s']") % (
                 conga_node,
                 conga_role_mapping,
+                conga_variant_mapping,
                 self.current_role,
                 self.depending_role,
                 self.parent_role))
@@ -106,8 +111,8 @@ class ActionModule(ActionBase):
 
         # Always display resolved role and mapping
         display.display(
-            "[%s (%s)] (%s) => role: %s, variant: %s" %
-            (task_vars['inventory_hostname'], conga_node, role_source, conga_role, conga_variant))
+            "[%s (%s)] (%s) => role: %s, variants: %s" %
+            (task_vars['inventory_hostname'], conga_node, role_source, conga_role, conga_variants))
 
         # Build lists of CONGA files and packages
         conga_files_paths, conga_files, conga_packages = self._get_files_and_packages(model_role)
@@ -158,16 +163,21 @@ class ActionModule(ActionBase):
         if self._task._role:
             return self._task._role._role_name
 
-    def _match_conga_role(self, roles, ansible_role):
+    def _match_conga_role(self, roles, ansible_role, ansible_variant):
         if not ansible_role:
             return None
         # Strip "conga-" prefix from Ansible role name
         ansible_role = re.sub("^conga-", "", ansible_role)
-        # Iterate over CONGA roles and return the first match
+        # Iterate over CONGA roles and return the first role that matches both name and variant
         for role in roles:
             conga_role = role.get("role", "")
+
             if conga_role == ansible_role:
-                return conga_role
+                if ansible_variant:
+                    if ansible_variant in role.get("variants", []):
+                        return conga_role
+                else:
+                    return conga_role
 
     def _get_files_and_packages(self, role):
         conga_files_paths = []
