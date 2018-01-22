@@ -112,7 +112,7 @@ class ActionModule(ActionBase):
             (task_vars['inventory_hostname'], conga_node, role_source, conga_role, conga_variants))
 
         # Build lists of CONGA files and packages
-        conga_files_paths, conga_files, conga_packages = self._get_files_and_packages(model_role)
+        conga_files_paths, conga_files, conga_bundle_files, conga_packages = self._get_files_and_packages(model_role)
 
         # Build unique list of directories from the list of files
         conga_directories = list(set([os.path.dirname(f) for f in conga_files_paths]))
@@ -127,6 +127,7 @@ class ActionModule(ActionBase):
             "conga_tenants": conga_tenants,
             "conga_files_paths": conga_files_paths,
             "conga_files": conga_files,
+            "conga_bundle_files": conga_bundle_files,
             "conga_packages": conga_packages,
             "conga_directories": conga_directories
         }
@@ -179,6 +180,7 @@ class ActionModule(ActionBase):
     def _get_files_and_packages(self, role):
         conga_files_paths = []
         conga_files = []
+        conga_bundle_files = []
         conga_packages = []
 
         for role_file in role.get("files", []):
@@ -186,12 +188,15 @@ class ActionModule(ActionBase):
             if "aemContentPackageProperties" in role_file:
                 # If the file has package properties we know it's an AEM package
                 conga_packages.append(role_file)
+            elif "bundleFileProperties" in role_file:
+                # If the file has bundle file properties we know it belong to an AEM/sling bundle
+                conga_bundle_files.append(role_file)
             else:
                 # It's a regular file otherwise
                 conga_files_paths.append(path)
                 conga_files.append(role_file)
 
-        return conga_files_paths, conga_files, conga_packages
+        return conga_files_paths, conga_files, conga_bundle_files, conga_packages
 
     def _get_arg_or_var(self, name, default=None, is_required=True):
         ret = self._task.args.get(name, self._task_vars.get(name, default))
