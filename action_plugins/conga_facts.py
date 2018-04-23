@@ -105,6 +105,7 @@ class ActionModule(ActionBase):
         conga_variants = model_role.get("variants", [])
         conga_config = model_role.get("config", {})
         conga_tenants = model_role.get("tenants", {})
+        conga_version_info = model.get("versionInfo", {})
 
         # Always display resolved role and mapping
         display.display(
@@ -129,7 +130,8 @@ class ActionModule(ActionBase):
             "conga_files": conga_files,
             "conga_bundle_files": conga_bundle_files,
             "conga_packages": conga_packages,
-            "conga_directories": conga_directories
+            "conga_directories": conga_directories,
+            "conga_version_info": conga_version_info
         }
 
         return result
