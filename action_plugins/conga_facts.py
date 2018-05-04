@@ -5,7 +5,6 @@ from __future__ import (absolute_import, division, print_function)
 
 __metaclass__ = type
 
-import yaml
 import os
 import re
 
@@ -66,7 +65,7 @@ class ActionModule(ActionBase):
         model_file = os.path.join(conga_config_path, conga_model_file)
         try:
             with open(model_file) as f:
-                model = yaml.safe_load(f.read())
+                model = self._loader.load(f.read())
         except Exception as err:
             return self._fail_result(result, "could not parse model file '%s': %s" % (model_file, to_native(err)))
 
