@@ -1,4 +1,4 @@
-# conga-facts
+# wcm-io-devops.conga-facts
 
 This role supplies the configuration from the CONGA model as facts. It consists mainly of an action plugin which can be used independently from the role, but is packaged as a role so that other roles can declare it as dependency and have access to the CONGA facts.
 
@@ -55,7 +55,7 @@ This playbook compiles the [CONGA example configuration](https://github.com/wcm-
 
     - hosts: localhost
       roles:
-        - { role: conga-maven,
+        - { role: wcm-io-devops.conga-maven,
             conga_maven_git_repo: "https://github.com/wcm-io-devops/conga.git",
             conga_maven_git_branch: master,
             conga_maven_root: example }
@@ -71,7 +71,7 @@ This playbook compiles the [CONGA example configuration](https://github.com/wcm-
             msg: "{{ conga_config }}"
       roles:
         # Used a a role (but normally you would use it as a dependency to another role)
-        - { role: conga-facts,
+        - { role: wcm-io-devops.conga-facts,
             conga_role_mapping: tomcat-backendconnector }
       tasks:
         - debug:

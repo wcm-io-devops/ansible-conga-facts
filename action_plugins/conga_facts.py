@@ -166,7 +166,7 @@ class ActionModule(ActionBase):
         if not ansible_role:
             return None
         # Strip "conga-" prefix from Ansible role name
-        ansible_role = re.sub("^conga-", "", ansible_role)
+        ansible_role = re.sub("^wcm-io-devops\.conga-", "", ansible_role)
         # Iterate over CONGA roles and return the first role that matches both name and variant
         for role in roles:
             conga_role = role.get("role", "")
