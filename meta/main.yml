@@ -1,4 +1,5 @@
 galaxy_info:
+  role_name: conga_facts
   author: Martin Wehner
   description: Supplies the configuration from the CONGA model as facts.
   company: pro!vision

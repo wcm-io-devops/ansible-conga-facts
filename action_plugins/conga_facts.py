@@ -165,8 +165,10 @@ class ActionModule(ActionBase):
     def _match_conga_role(self, roles, ansible_role, ansible_variant):
         if not ansible_role:
             return None
-        # Strip "conga-" prefix from Ansible role name
-        ansible_role = re.sub("^wcm-io-devops\.conga-", "", ansible_role)
+        # Strip "wcm_io_devops.conga_" prefix from Ansible role name
+        ansible_role = re.sub("^.*\.conga_", "", ansible_role)
+        # replace _ against - since ansible galaxy is exchanging "-" against "_"
+        ansible_role = ansible_role.replace("_","-")
         # Iterate over CONGA roles and return the first role that matches both name and variant
         for role in roles:
             conga_role = role.get("role", "")
