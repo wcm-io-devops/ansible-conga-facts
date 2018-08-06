@@ -90,7 +90,11 @@ class ActionModule(ActionBase):
         if not model_role:
             # Fail the task if no CONGA role could be resolved
             return self._fail_result(result, ("unable to match CONGA role for node '%s' "
-                                              "[role_mapping: '%s', variant_mapping: '%s', current: '%s', dependency: '%s', parent: '%s']") % (
+                                              "[role_mapping: '%s', "
+                                              "variant_mapping: '%s', "
+                                              "current: '%s', "
+                                              "dependency: '%s', "
+                                              "parent: '%s']") % (
                 conga_node,
                 conga_role_mapping,
                 conga_variant_mapping,
@@ -115,7 +119,7 @@ class ActionModule(ActionBase):
         conga_files_paths, conga_files, conga_bundle_files, conga_packages = self._get_files_and_packages(model_role)
 
         # Build unique list of directories from the list of files
-        conga_directories = list(set([os.path.dirname(f) for f in conga_files_paths]))
+        conga_directories = list(set([os.path.dirname(p) for p in conga_files_paths]))
 
         result["ansible_facts"] = {
             "conga_basedir": conga_basedir,
@@ -168,7 +172,7 @@ class ActionModule(ActionBase):
         # Strip "wcm_io_devops.conga_" prefix from Ansible role name
         ansible_role = re.sub("^.*\.conga_", "", ansible_role)
         # replace _ against - since ansible galaxy is exchanging "-" against "_"
-        ansible_role = ansible_role.replace("_","-")
+        ansible_role = ansible_role.replace("_", "-")
         # Iterate over CONGA roles and return the first role that matches both name and variant
         for role in roles:
             conga_role = role.get("role", "")

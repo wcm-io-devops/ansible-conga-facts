@@ -23,3 +23,5 @@ galaxy_info:
     - wcmio
 
 allow_duplicates: yes
+
+dependencies: []
