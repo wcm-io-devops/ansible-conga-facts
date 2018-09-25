@@ -2,6 +2,11 @@
 
 This role supplies the configuration from the CONGA model as facts. It consists mainly of an action plugin which can be used independently from the role, but is packaged as a role so that other roles can declare it as dependency and have access to the CONGA facts.
 
+> This role was developed as part of the
+> [wcm.io DevOps Ansible Automation for AEM](http://devops.wcm.io/ansible-aem/)
+> to integrate Ansible with
+> [CONGA](http://devops.wcm.io/conga/).
+
 To determine which CONGA role to use in a specific context, the plugin uses different strategies. Generally speaking, it tries to match the name of an Ansible role to the name of a CONGA role, so that it should be enough to name an Ansible role identical to a CONGA role to automatically match it. An optional `conga-` prefix is stripped from the Ansible role name before the comparison, so that you can prefix the CONGA specific roles to quickly identify them by name. Specifically, the lookup logic works like this:
 
 * It checks whether the `conga_role_mapping` variable is set and use that role name if it is. This can be used to explicitly set a role mapping if you can't or don't want to use the name-based auto resolution, e.g. if a generic Ansible role should be mapped to a specific CONGA role (which is quite common).
