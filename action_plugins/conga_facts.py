@@ -156,7 +156,7 @@ class ActionModule(ActionBase):
         parent_role = None
         parent = self._task._parent
         while parent:
-            if hasattr(parent, '_role'):
+            if hasattr(parent, '_role') and hasattr(parent._role, '_role_name'):
                 parent_role = parent._role._role_name
             parent = parent._parent
         return parent_role
