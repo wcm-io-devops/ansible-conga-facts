@@ -20,6 +20,7 @@ addons:
 install:
   # Install ansible and dependencies
   - if [ "$ANSIBLE_VERSION" = "latest" ]; then pip install ansible ansible-lint --upgrade; else pip install ansible=="$ANSIBLE_VERSION" ansible-lint --upgrade; fi
+  - pip install mock
 
   # Check ansible version
   - ansible --version
@@ -33,6 +34,9 @@ script:
 
   # Basic role syntax check
   - ansible-playbook tests/test.yml -i tests/inventory --syntax-check
+
+  # Unit tests
+  - pytest
 
 notifications:
   webhooks: https://galaxy.ansible.com/api/v1/notifications/

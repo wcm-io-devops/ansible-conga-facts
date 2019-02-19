@@ -1,0 +1,10 @@
+roles:
+  - role: db
+    variant: primary
+    variants: [primary]
+    config:
+      path: /opt/db
+    tenants:
+      - tenant: tenant1
+  - role: cms
+versionInfo: {'plugin': 1.2.3}
