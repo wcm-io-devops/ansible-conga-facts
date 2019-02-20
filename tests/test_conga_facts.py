@@ -1,12 +1,9 @@
-import os
 import unittest
 import yaml
 
 from mock import Mock, MagicMock, patch
 
-from ansible.plugins.loader import connection_loader
 from ansible.playbook.task import Task
-from ansible.playbook.role import Role
 from ansible.parsing.dataloader import DataLoader
 
 from action_plugins.conga_facts import ActionModule
@@ -22,10 +19,7 @@ class MockModule(ActionModule):
 
     def __init__(self, task):
         self.play_context = Mock()
-        self.play_context.shell = 'sh'
-        self.connection = connection_loader.get('local', self.play_context, os.devnull)
-
-        super(ActionModule, self).__init__(task, self.connection, self.play_context, None, None, None)
+        super(ActionModule, self).__init__(task, None, self.play_context, None, None, None)
         self._task_vars = None
 
     def run(self, task_vars=TASK_VARS):
