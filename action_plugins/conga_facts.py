@@ -41,14 +41,12 @@ class ActionModule(ActionBase):
             # Get CONGA node name from conga_node, fallback to inventory_hostname if not defined
             conga_node = self._get_arg_or_var('conga_node', task_vars['inventory_hostname'])
 
-            # Get CONGA basedir from the host vars of the host CONGA was executed on
-            # Currently this has to be localhost, since we need access to the generated files
-            conga_host = self._get_arg_or_var('conga_host', 'localhost')
-            conga_basedir = task_vars['hostvars'].get(conga_host).get('conga_basedir')
+            # Get CONGA basedir
+            conga_basedir = self.conga_basedir
 
             # Get CONGA Maven target directory and build complete config path
             conga_target_path = self._get_arg_or_var('conga_target_path', 'target/configuration')
-            conga_config_path = os.path.join(conga_basedir, conga_target_path, conga_environment, conga_node)
+            conga_config_path = os.path.join(self.conga_basedir, conga_target_path, conga_environment, conga_node)
 
             # Get explicit role mapping
             conga_role_mapping = self._get_arg_or_var('conga_role_mapping', None, False)
@@ -58,7 +56,7 @@ class ActionModule(ActionBase):
 
             # Get name of model file, use model.yaml by default
             conga_model_file = self._get_arg_or_var('conga_model_file', 'model.yaml')
-        except AnsibleOptionsError as err:
+        except Exception as err:
             return self._fail_result(result, err.message)
 
         # Parse CONGA model YAML
@@ -156,6 +154,17 @@ class ActionModule(ActionBase):
         dep_chain = self._task.get_dep_chain()
         if dep_chain:
             return str(next(iter(dep_chain), None))
+
+    @property
+    def conga_basedir(self):
+        # Get CONGA basedir from the host vars of the host CONGA was executed on
+        # Currently this has to be localhost, since we need access to the generated files
+        conga_host = self._get_arg_or_var('conga_host', 'localhost')
+        conga_basedir = self._task_vars['hostvars'].get(conga_host, {}).get('conga_basedir')
+        if not conga_basedir:
+            raise AnsibleOptionsError("parameter conga_basedir is required")
+        else:
+            return conga_basedir
 
     @property
     def parent_role(self):

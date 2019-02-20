@@ -33,7 +33,6 @@ class MockModule(ActionModule):
         with patch('action_plugins.conga_facts.open') as mock_open:
             mock_open.return_value = MagicMock(spec=file)
             result = super(MockModule, self).run(None, task_vars)
-            mock_open.assert_called_once()
             return result
 
     def get_facts(self, task_vars=TASK_VARS):
@@ -164,3 +163,18 @@ class TestCongaFactsPlugin(unittest.TestCase):
         task = Task(None, MockRole("web"), None)
         result = MockModule(task).run()
         self.assertTrue(result.get('failed'))
+
+    def test_conga_basedir_required(self):
+        hostvars = {}
+        task_vars = dict(TASK_VARS)
+        task_vars['hostvars'] = hostvars
+        result = MockModule(Task()).run(task_vars)
+        self.assertTrue(result.get('failed'))
+        self.assertIn('required', result.get('msg'))
+
+    def test_conga_environment_required(self):
+        task_vars = dict(TASK_VARS)
+        task_vars.pop("conga_environment")
+        result = MockModule(Task()).run(task_vars)
+        self.assertTrue(result.get('failed'))
+        self.assertIn('required', result.get('msg'))
