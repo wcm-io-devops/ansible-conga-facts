@@ -19,6 +19,7 @@ class MockModule(ActionModule):
 
     def __init__(self, task):
         self.play_context = Mock()
+        self.play_context.shell = 'sh'
         super(ActionModule, self).__init__(task, None, self.play_context, None, None, None)
         self._task_vars = None
 
