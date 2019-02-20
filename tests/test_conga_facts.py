@@ -131,11 +131,18 @@ class TestCongaFactsPlugin(unittest.TestCase):
         facts = MockModule(task).get_facts()
         self.assertEqual("db", facts.get('conga_role'))
 
-    def test_conga_role_source_current_with_prefix(self):
+    def test_conga_role_source_current_namespace_and_prefix(self):
         task = Task(None, MockRole('ops.conga_db'), None)
-        # TODO: Both of those should work
-        # task = Task(None, MockRole('conga_db'), None)
-        # task = Task(None, MockRole('ops.db'), None)
+        facts = MockModule(task).get_facts()
+        self.assertEqual("db", facts.get('conga_role'))
+
+    def test_conga_role_source_current_conga_prefix(self):
+        task = Task(None, MockRole('conga_db'), None)
+        facts = MockModule(task).get_facts()
+        self.assertEqual("db", facts.get('conga_role'))
+
+    def test_conga_role_source_current_namespace(self):
+        task = Task(None, MockRole('ops.db'), None)
         facts = MockModule(task).get_facts()
         self.assertEqual("db", facts.get('conga_role'))
 

@@ -170,11 +170,10 @@ class ActionModule(ActionBase):
         if not ansible_role:
             return None
 
-        # check if ansible_role contains a namespace and role beginning with 'conga_' and extract role
-        if re.match(".+\.conga_", ansible_role):
-            ansible_role = re.sub("^.+\.conga_", "", ansible_role)
-            # replace "_" against "-" since ansible galaxy is exchanging "-" against "_"
-            ansible_role = ansible_role.replace("_", "-")
+        # remove namespace and 'conga_' prefix before trying to match
+        ansible_role = re.sub(r"^(.+\.)?(conga_)?", "", ansible_role)
+        # replace "_" against "-" since ansible galaxy is exchanging "-" against "_"
+        ansible_role = ansible_role.replace("_", "-")
 
         # Iterate over CONGA roles and return the first role that matches both name and variant
         for role in roles:
