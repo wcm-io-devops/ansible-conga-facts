@@ -116,14 +116,11 @@ class TestCongaFactsPlugin(unittest.TestCase):
         facts = MockModule(task).get_facts(task_vars)
         self.assertEqual("cms", facts.get('conga_role'))
 
-    # TODO: When the role for an explicit mapping cannot be resolved we should fail in any case
-    # Currently we proceed with the mapping in any case which is
-    @unittest.expectedFailure
     def test_conga_role_source_mapping_invalid(self):
         task = Task(None, MockRole('db'), None)
         task_vars = dict(TASK_VARS)
         task_vars['conga_role_mapping'] = "web"
-        result = MockModule(task).run()
+        result = MockModule(task).run(task_vars)
         self.assertTrue(result.get('failed'))
 
     def test_conga_role_source_current(self):

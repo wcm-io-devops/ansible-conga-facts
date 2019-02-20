@@ -71,9 +71,15 @@ class ActionModule(ActionBase):
 
         roles = model.get("roles", [])
 
-        # Allow overriding the CONGA role with the conga_role_mapping variable or argument
-        model_role = self._match_conga_role(roles, conga_role_mapping, conga_variant_mapping)
-        role_source = 'mapping'
+        model_role = None
+        if conga_role_mapping:
+            # Allow overriding the CONGA role with the conga_role_mapping variable or argument
+            model_role = self._match_conga_role(roles, conga_role_mapping, conga_variant_mapping)
+            role_source = 'mapping'
+            # Fail if a mapping was provided but couldn't be matched. Otherwise we might yield an unexpected match that was clearly not intended.
+            if not model_role:
+                return self._fail_result(result, "unable to match CONGA role for explicit role mapping: '%s' and node '%s' " % (conga_role_mapping, conga_node))
+
         if not model_role:
             # Resolve the CONGA role via the name of the current Ansible role
             model_role = self._match_conga_role(roles, self.current_role, conga_variant_mapping)
