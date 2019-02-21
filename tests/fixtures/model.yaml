@@ -7,4 +7,9 @@ roles:
     tenants:
       - tenant: tenant1
   - role: cms
+  - role: dispatcher
+    variants: [author, ssl]
+  - role: dispatcher
+    variants: [publish, ssl]
+
 versionInfo: {'plugin': 1.2.3}

@@ -190,16 +190,23 @@ class ActionModule(ActionBase):
         # replace "_" against "-" since ansible galaxy is exchanging "-" against "_"
         ansible_role = ansible_role.replace("_", "-")
 
-        # Iterate over CONGA roles and return the first role that matches both name and variant
-        for role in roles:
-            conga_role = role.get("role", "")
+        # filter by role name
+        matching_roles = filter(lambda role: role.get("role", "") == ansible_role, roles)
 
-            if conga_role == ansible_role:
-                if ansible_variant:
-                    if ansible_variant in role.get("variants", []):
-                        return role
-                else:
-                    return role
+        # filter by variant name
+        if ansible_variant:
+            matching_roles = filter(lambda role: ansible_variant in role.get("variants", ""), roles)
+
+        # warn if the matched role is not unique
+        if len(matching_roles) > 1:
+            if ansible_variant:
+                display.warning("multiple roles in the CONGA model match role '%s' with variant '%s'")
+            else:
+                display.warning("multiple roles in the CONGA model match role '%s' and no variant mapping was provided")
+            display.warning("proceeding with first match.")
+
+        # use first match
+        return next(iter(matching_roles or []), None)
 
     def _get_files_and_packages(self, role):
         conga_files_paths = []

@@ -108,6 +108,24 @@ class TestCongaFactsPlugin(unittest.TestCase):
         self.assertIsNone(facts.get('conga_variant'))
         self.assertEqual([], facts.get('conga_variants'))
 
+    def test_conga_role_multiple_matches_use_first_and_warn(self):
+        task = Task(None, MockRole("dispatcher"), None)
+        with patch('action_plugins.conga_facts.display.warning') as mock_warning:
+            facts = MockModule(task).get_facts()
+            self.assertIn('author', facts.get('conga_variants'))
+            self.assertNotIn('publish', facts.get('conga_variants'))
+            mock_warning.assert_called()
+
+    def test_conga_role_multiple_matches_with_variant_mapping(self):
+        task = Task(None, MockRole("dispatcher"), None)
+        task_vars = dict(TASK_VARS)
+        task_vars['conga_variant_mapping'] = "publish"
+        with patch('action_plugins.conga_facts.display.warning') as mock_warning:
+            facts = MockModule(task).get_facts(task_vars)
+            self.assertIn('publish', facts.get('conga_variants'))
+            self.assertNotIn('author', facts.get('conga_variants'))
+            mock_warning.assert_not_called()
+
     def test_conga_role_source_mapping(self):
         task = Task(None, MockRole('conga_facts'), None)
         task_vars = dict(TASK_VARS)
@@ -168,13 +186,6 @@ class TestCongaFactsPlugin(unittest.TestCase):
         hostvars = {}
         task_vars = dict(TASK_VARS)
         task_vars['hostvars'] = hostvars
-        result = MockModule(Task()).run(task_vars)
-        self.assertTrue(result.get('failed'))
-        self.assertIn('required', result.get('msg'))
-
-    def test_conga_environment_required(self):
-        task_vars = dict(TASK_VARS)
-        task_vars.pop("conga_environment")
         result = MockModule(Task()).run(task_vars)
         self.assertTrue(result.get('failed'))
         self.assertIn('required', result.get('msg'))
