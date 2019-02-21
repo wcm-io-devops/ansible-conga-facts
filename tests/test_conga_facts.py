@@ -5,6 +5,7 @@ from mock import Mock, MagicMock, patch
 
 from ansible.playbook.task import Task
 from ansible.parsing.dataloader import DataLoader
+from ansible.template import Templar
 
 from action_plugins.conga_facts import ActionModule
 
@@ -21,7 +22,8 @@ class MockModule(ActionModule):
         self.play_context = Mock()
         self.connection = Mock()
         self.connection.shell = 'sh'
-        super(ActionModule, self).__init__(task, self.connection, self.play_context, None, None, None)
+        self.templar = Templar(loader=None)
+        super(ActionModule, self).__init__(task, self.connection, self.play_context, None, self.templar, None)
         self._task_vars = None
 
     def run(self, task_vars=TASK_VARS):
@@ -189,3 +191,17 @@ class TestCongaFactsPlugin(unittest.TestCase):
         result = MockModule(Task()).run(task_vars)
         self.assertTrue(result.get('failed'))
         self.assertIn('required', result.get('msg'))
+
+    def test_variable_interpolation(self):
+        task_vars = dict(TASK_VARS)
+        task_vars['conga_role_mapping'] = "{{ my_role }}"
+        mock_module = MockModule(Task())
+        mock_module.templar.set_available_variables({'my_role': 'cms'})
+        facts = mock_module.get_facts(task_vars)
+        self.assertEqual("cms", facts.get('conga_role'))
+
+    def test_variable_interpolation_undefined(self):
+        task_vars = dict(TASK_VARS)
+        task_vars['conga_role_mapping'] = "{{ my_role }}"
+        result = MockModule(Task()).run(task_vars)
+        self.assertTrue(result.get('failed'))
