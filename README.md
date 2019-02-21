@@ -32,11 +32,11 @@ The role also needs to know the current CONGA environment and the CONGA node the
 
 | Name              | Description          |
 |-------------------|----------------------|
-| `conga_environment` | Name of the CONGA environment to use. |
+| `conga_environment` | Name of the CONGA environment to use (required)|
+| `conga_basedir` | Base directory of the CONGA configuration (required)|
 | `conga_role_mapping` | Name of the CONGA role to use the configuration from (optional, see above) |
 | `conga_variant_mapping` | Name of the variant to use. Only required if you apply different variants of the same CONGA role multiple times on the same node. |
 | `conga_node` | Name of the CONGA node to use for the current host. Defaults to the inventory hostname of the host the current task is running on. |
-| `conga_basedir` | Base directory of the CONGA configuration. |
 | `conga_model_file` | Name of the CONGA model file. Defaults to `model.yaml`. |
 | `conga_target_path` | Relative path of the compiled CONGA configuration within `conga_basedir`. Defaults to `target/configuration`. |
 
