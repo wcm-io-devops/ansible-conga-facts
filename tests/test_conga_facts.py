@@ -192,6 +192,13 @@ class TestCongaFactsPlugin(unittest.TestCase):
         self.assertTrue(result.get('failed'))
         self.assertIn('required', result.get('msg'))
 
+    def test_conga_environment_required(self):
+        task_vars = dict(TASK_VARS)
+        task_vars.pop("conga_environment")
+        result = MockModule(Task()).run(task_vars)
+        self.assertTrue(result.get('failed'))
+        self.assertIn('required', result.get('msg'))
+
     def test_variable_interpolation(self):
         task_vars = dict(TASK_VARS)
         task_vars['conga_role_mapping'] = "{{ my_role }}"
