@@ -23,19 +23,17 @@ class MockModule(ActionModule):
         self.connection = Mock()
         self.connection.shell = 'sh'
         self.templar = Templar(loader=None)
-        super(ActionModule, self).__init__(task, self.connection, self.play_context, None, self.templar, None)
+        super(MockModule, self).__init__(task, self.connection, self.play_context, None, self.templar, None)
         self._task_vars = None
-
-    def run(self, task_vars=TASK_VARS):
         with open('tests/fixtures/model.yaml') as f:
             mock_loader = MagicMock(DataLoader)
             mock_loader.load.return_value = yaml.load(f.read())
             self._loader = mock_loader
 
+    def run(self, task_vars=TASK_VARS):
         with patch('action_plugins.conga_facts.open') as mock_open:
             mock_open.return_value = MagicMock(spec=file)
-            result = super(MockModule, self).run(None, task_vars)
-            return result
+            return super(MockModule, self).run(None, task_vars)
 
     def get_facts(self, task_vars=TASK_VARS):
         result = self.run(task_vars)
@@ -211,4 +209,11 @@ class TestCongaFactsPlugin(unittest.TestCase):
         task_vars = dict(TASK_VARS)
         task_vars['conga_role_mapping'] = "{{ my_role }}"
         result = MockModule(Task()).run(task_vars)
+        self.assertTrue(result.get('failed'))
+
+    def test_open_model_error(self):
+        task = Task(None, MockRole("db"), None)
+        mock_module = MockModule(task)
+        mock_module._loader.load.side_effect = Exception("File not found")
+        result = mock_module.run()
         self.assertTrue(result.get('failed'))
