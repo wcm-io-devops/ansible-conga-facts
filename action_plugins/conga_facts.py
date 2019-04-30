@@ -200,9 +200,9 @@ class ActionModule(ActionBase):
         # warn if the matched role is not unique
         if len(matching_roles) > 1:
             if ansible_variant:
-                display.warning("multiple roles in the CONGA model match role '%s' with variant '%s'")
+                display.warning("multiple roles in the CONGA model match role '%s' with variant '%s'" % (ansible_role, ansible_variant))
             else:
-                display.warning("multiple roles in the CONGA model match role '%s' and no variant mapping was provided")
+                display.warning("multiple roles in the CONGA model match role '%s' and no variant mapping was provided" % (ansible_role))
             display.warning("proceeding with first match.")
 
         # use first match
