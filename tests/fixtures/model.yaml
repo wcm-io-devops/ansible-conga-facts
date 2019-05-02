@@ -7,6 +7,8 @@ roles:
     tenants:
       - tenant: tenant1
   - role: cms
+  - role: monitoring
+    variants: [publish]
   - role: dispatcher
     variants: [author, ssl]
   - role: dispatcher

@@ -193,9 +193,9 @@ class ActionModule(ActionBase):
         # filter by role name
         matching_roles = filter(lambda role: role.get("role", "") == ansible_role, roles)
 
-        # filter by variant name
+        # filter matching roles by variant name
         if ansible_variant:
-            matching_roles = filter(lambda role: ansible_variant in role.get("variants", ""), roles)
+            matching_roles = filter(lambda role: ansible_variant in role.get("variants", ""), matching_roles)
 
         # warn if the matched role is not unique
         if len(matching_roles) > 1:
