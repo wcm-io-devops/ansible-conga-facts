@@ -191,7 +191,7 @@ class ActionModule(ActionBase):
         ansible_role = ansible_role.replace("_", "-")
 
         # filter by role name
-        matching_roles = filter(lambda role: role.get("role", "") == ansible_role, roles)
+        matching_roles = list(filter(lambda role: role.get("role", "") == ansible_role, roles))
 
         # filter matching roles by variant name
         if ansible_variant:
