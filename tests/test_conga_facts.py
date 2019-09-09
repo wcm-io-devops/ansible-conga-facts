@@ -32,7 +32,7 @@ class MockModule(ActionModule):
 
     def run(self, task_vars=TASK_VARS):
         with patch('action_plugins.conga_facts.open') as mock_open:
-            mock_open.return_value = MagicMock(spec=file)
+            mock_open.return_value = MagicMock()
             return super(MockModule, self).run(None, task_vars)
 
     def get_facts(self, task_vars=TASK_VARS):
