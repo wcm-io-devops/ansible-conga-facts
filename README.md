@@ -1,6 +1,6 @@
 # wcm_io_devops.conga_facts
 
-[![Build Status](https://travis-ci.org/wcm-io-devops/ansible-conga-facts.svg?branch=master)](https://travis-ci.org/wcm-io-devops/ansible-conga-facts)
+[![Build Status](https://travis-ci.com/wcm-io-devops/ansible-conga-facts.svg?branch=master)](https://travis-ci.com/wcm-io-devops/ansible-conga-facts)
 
 This role supplies the configuration from the CONGA model as facts. It consists mainly of an action plugin which can be used independently from the role, but is packaged as a role so that other roles can declare it as dependency and have access to the CONGA facts.
 
