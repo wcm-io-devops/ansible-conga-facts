@@ -117,13 +117,7 @@ jobs:
 
       - name: Test syntax.
         run: |
-          ansible-playbook tests/test-multihost.yml -i tests/inventory --syntax-check
-          ansible-playbook tests/test-singlehost.yml -i tests/inventory --syntax-check
-
-      - name: Run tests.
-        run: |
-          ansible-playbook tests/test-multihost.yml -i tests/inventory
-          ansible-playbook tests/test-singlehost.yml -i tests/inventory
+          ansible-playbook tests/test.yml -i tests/inventory --syntax-check
 
   galaxy:
     name: "Ansible Galaxy import"
