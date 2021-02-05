@@ -51,7 +51,7 @@ jobs:
         run: |
           pip3 install wheel pytest --upgrade
 
-      - name: Install pip requirements
+      - name: Install pip requirements.
         run: |
             pip3 install -r requirements.txt
 
