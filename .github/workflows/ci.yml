@@ -42,6 +42,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.ANSIBLE_VERSION }}-
 
+      - name: Install role requirements
+        uses: BSFishy/pip-action@v1
+        with:
+          requirements: "${{ env.ROLE_NAME }}/requirements.txt"
+
       - name: Set up Python.
         uses: actions/setup-python@v2
         with:
