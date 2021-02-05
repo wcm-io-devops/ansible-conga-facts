@@ -38,9 +38,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.ANSIBLE_VERSION }}-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ matrix.PYTHON_VERSION }}-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.ANSIBLE_VERSION }}-
+            ${{ runner.os }}-pip-${{ matrix.PYTHON_VERSION }}-
 
       - name: Set up Python.
         uses: actions/setup-python@v2
@@ -50,6 +50,10 @@ jobs:
       - name: Install pip tools.
         run: |
           pip3 install wheel pytest --upgrade
+
+      - name: Install test dependencies.
+        run: >
+          pip3 install pytest mock ansible --upgrade
 
       - name: Install pip requirements.
         run: |
@@ -82,9 +86,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.ANSIBLE_VERSION }}-${{ hashFiles('**/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ matrix.NAME }}-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.ANSIBLE_VERSION }}-
+            ${{ runner.os }}-pip-${{ matrix.NAME }}-
 
       - name: Create ansible.cfg
         run: "printf '[defaults]\nroles_path=./tests/requirements/:../' > ansible.cfg"
