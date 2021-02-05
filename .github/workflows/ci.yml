@@ -18,7 +18,7 @@ defaults:
 jobs:
 
   tests:
-    name: "Test (${{ matrix.NAME }})"
+    name: "pytest (${{ matrix.NAME }})"
     runs-on: ubuntu-latest
     strategy:
       matrix:
