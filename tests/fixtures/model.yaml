@@ -1,3 +1,4 @@
+---
 roles:
   - role: db
     variant: primary

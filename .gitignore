@@ -28,6 +28,7 @@ npm-debug.log
 *.sublime-*
 *nbactions*.xml
 .temp/
+ansible.cfg
 
 *.pyc
 .coverage
