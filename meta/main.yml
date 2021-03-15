@@ -1,6 +1,7 @@
 ---
 galaxy_info:
   role_name: conga_facts
+  namespace: wcm_io_devops
   author: Martin Wehner
   description: Supplies the configuration from the CONGA model as facts.
   company: pro!vision
