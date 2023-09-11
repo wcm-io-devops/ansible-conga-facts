@@ -159,6 +159,12 @@ class ActionModule(ActionBase):
     def conga_basedir(self):
         # Get CONGA basedir from the host vars of the host CONGA was executed on
         # Currently this has to be localhost, since we need access to the generated files
+
+        # Check if conga_basedir was defined explicitly in play variables or via set_facts.
+        conga_basedir = self._get_arg_or_var("conga_basedir", None, False)
+        if conga_basedir:
+            return conga_basedir
+
         conga_host = self._get_arg_or_var('conga_host', 'localhost')
         conga_basedir = self._task_vars['hostvars'].get(conga_host, {}).get('conga_basedir')
         if not conga_basedir:
