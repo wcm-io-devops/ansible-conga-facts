@@ -1,5 +1,6 @@
 import unittest
 import yaml
+import re
 
 from mock import Mock, MagicMock, patch
 
@@ -16,6 +17,17 @@ TASK_VARS = {'inventory_hostname': 'hostname',
              'conga_node': 'node',
              'hostvars': HOST_VARS}
 
+def simple_template(template_string, task_vars):
+    """Simple template interpolation for {{ var }} syntax"""
+    if not isinstance(template_string, str):
+        return template_string
+    
+    def replace_var(match):
+        var_name = match.group(1).strip()
+        return str(task_vars.get(var_name, match.group(0)))
+    
+    return re.sub(r'{{\s*([^}]+)\s*}}', replace_var, template_string)
+
 class MockModule(ActionModule):
 
     def __init__(self, task):
@@ -23,14 +35,23 @@ class MockModule(ActionModule):
         self.connection = Mock()
         self.connection.shell = 'sh'
         self.templar = Templar(loader=None)
+        self._task_vars_for_templating = {}
         super(MockModule, self).__init__(task, self.connection, self.play_context, None, self.templar, None)
         self._task_vars = None
         with open('tests/fixtures/model.yaml') as f:
             mock_loader = MagicMock(DataLoader)
-            mock_loader.load.return_value = yaml.load(f.read())
+            mock_loader.load.return_value = yaml.safe_load(f.read())
             self._loader = mock_loader
 
+    def _template_with_vars(self, template_string):
+        """Bound method for template interpolation using task_vars"""
+        return simple_template(template_string, self._task_vars_for_templating)
+
     def run(self, task_vars=TASK_VARS):
+        # Store task_vars for template interpolation
+        self._task_vars_for_templating = task_vars
+        # Override templar.template to use our simple interpolation via bound method
+        self.templar.template = self._template_with_vars
         with patch('action_plugins.conga_facts.open') as mock_open:
             mock_open.return_value = MagicMock()
             return super(MockModule, self).run(None, task_vars)
@@ -200,8 +221,8 @@ class TestCongaFactsPlugin(unittest.TestCase):
     def test_variable_interpolation(self):
         task_vars = dict(TASK_VARS)
         task_vars['conga_role_mapping'] = "{{ my_role }}"
+        task_vars['my_role'] = 'cms'
         mock_module = MockModule(Task())
-        mock_module.templar.set_available_variables({'my_role': 'cms'})
         facts = mock_module.get_facts(task_vars)
         self.assertEqual("cms", facts.get('conga_role'))
 
