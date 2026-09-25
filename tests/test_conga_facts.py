@@ -36,8 +36,6 @@ class MockModule(ActionModule):
         self.connection.shell = 'sh'
         self.templar = Templar(loader=None)
         self._task_vars_for_templating = {}
-        # Store original template method
-        self._original_template = self.templar.template
         super(MockModule, self).__init__(task, self.connection, self.play_context, None, self.templar, None)
         self._task_vars = None
         with open('tests/fixtures/model.yaml') as f:
@@ -45,11 +43,15 @@ class MockModule(ActionModule):
             mock_loader.load.return_value = yaml.safe_load(f.read())
             self._loader = mock_loader
 
+    def _template_with_vars(self, template_string):
+        """Bound method for template interpolation using task_vars"""
+        return simple_template(template_string, self._task_vars_for_templating)
+
     def run(self, task_vars=TASK_VARS):
         # Store task_vars for template interpolation
         self._task_vars_for_templating = task_vars
-        # Override templar.template to use our simple interpolation
-        self.templar.template = lambda x: simple_template(x, task_vars)
+        # Override templar.template to use our simple interpolation via bound method
+        self.templar.template = self._template_with_vars
         with patch('action_plugins.conga_facts.open') as mock_open:
             mock_open.return_value = MagicMock()
             return super(MockModule, self).run(None, task_vars)
